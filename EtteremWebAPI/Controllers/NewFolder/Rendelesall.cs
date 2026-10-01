@@ -1,6 +1,6 @@
 ﻿namespace EtteremWebAPI.Controllers.NewFolder
 {
-    public class Etteremall
+    public class Rendelesall
     {
         public int Id { get; set; }
         public string Dish { get; set; } = string.Empty;
