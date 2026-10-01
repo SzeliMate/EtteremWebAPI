@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using MySql.Data.MySqlClient;
 using EtteremWebAPI.Controllers.NewFolder;
+using EtteremWebAPI.Controllers.NewFolder.EtteremDTOs;
 
 namespace EtteremWebAPI.Controllers
 {
@@ -65,6 +68,21 @@ namespace EtteremWebAPI.Controllers
                 }
             }
             return result;
+
+        }
+            [HttpPost("rendeles")]
+            public object Rendeles(rendelesDTO register)
+            {
+                using var connector = new MySqlConnection(ConnectionString);
+                connector.Open();
+                string sql = @"INSERT INTO rendeles (Dish, Description, OrderTime, UpdateTime, VendegId) VALUES (@Dish, @Description, NOW(), NOW(), @VendegId)";
+            using var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@Dish", register.Dish ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Description", register.Description ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@VendegId", register.VendegId);
+                connector.Close();
+                return new { message = "Sikeres hozzáadás"};
+            }
+
         }
     }
-}
