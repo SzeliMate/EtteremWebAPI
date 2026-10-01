@@ -82,7 +82,47 @@ namespace EtteremWebAPI.Controllers
             cmd.Parameters.AddWithValue("@VendegId", register.VendegId);
                 connector.Close();
                 return new { message = "Sikeres hozzáadás"};
+ }
+        [HttpPut("modosit")]
+        public object UpdateBlogger([FromQuery] int id, [FromBody] updaterendelesdto updateRendelesDTos)
+        {
+            using var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+            string sql = @"UPDATE rendeles SET Dish=@Dish, Description=@Description, UpdateTime=NOW() WHERE Id=@Id";
+            using var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@Dish", updateRendelesDTos.Dish ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Description", updateRendelesDTos.Description ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", id);
+            if (cmd.ExecuteNonQuery() > 0)
+            {
+                return new { message = "Sikeres frissítés", result = updateRendelesDTos };
+            }
+            else
+            {
+                return new { message = "Sikertelen frissítés", result = updateRendelesDTos };
+            }
+        }
+
+        [HttpDelete("torles")]
+        public object RendelesTorles([FromBody] int id)
+        {
+            using var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+
+            string sql = @"DELETE FROM rendeles WHERE Id = @Id";
+
+            using var cmd = new MySqlCommand(sql, connector);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            int rowsAffected = cmd.ExecuteNonQuery();
+            connector.Close();
+
+            if (rowsAffected == 0)
+            {
+                return new { message = "Sikertelen törlés" };
             }
 
+            return new { message = "Sikeres törlés" };
         }
+    }
     }
