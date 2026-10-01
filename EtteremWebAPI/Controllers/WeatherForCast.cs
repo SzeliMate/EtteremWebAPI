@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using MySql.Data.MySqlClient;
-using EtteremWebAPI.Controllers.NewFolder;
-using EtteremWebAPI.Controllers.NewFolder.EtteremDTOs;
+    using Microsoft.AspNetCore.Mvc;
+    using System;
+    using System.Collections.Generic;
+    using MySql.Data.MySqlClient;
+    using EtteremWebAPI.Controllers.NewFolder;
+    using EtteremWebAPI.Controllers.NewFolder.EtteremDTOs;
 
 namespace EtteremWebAPI.Controllers
 {
@@ -70,19 +70,19 @@ namespace EtteremWebAPI.Controllers
             return result;
 
         }
-            [HttpPost("rendeles")]
-            public object Rendeles(rendelesDTO register)
-            {
-                using var connector = new MySqlConnection(ConnectionString);
-                connector.Open();
-                string sql = @"INSERT INTO rendeles (Dish, Description, OrderTime, UpdateTime, VendegId) VALUES (@Dish, @Description, NOW(), NOW(), @VendegId)";
+        [HttpPost("rendeles")]
+        public object Rendeles(rendelesDTO register)
+        {
+            using var connector = new MySqlConnection(ConnectionString);
+            connector.Open();
+            string sql = @"INSERT INTO rendeles (Dish, Description, OrderTime, UpdateTime, VendegId) VALUES (@Dish, @Description, NOW(), NOW(), @VendegId)";
             using var cmd = new MySqlCommand(sql, connector);
             cmd.Parameters.AddWithValue("@Dish", register.Dish ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@Description", register.Description ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@VendegId", register.VendegId);
-                connector.Close();
-                return new { message = "Sikeres hozzáadás"};
- }
+            connector.Close();
+            return new { message = "Sikeres hozzáadás" };
+        }
         [HttpPut("modosit")]
         public object UpdateBlogger([FromQuery] int id, [FromBody] updaterendelesdto updateRendelesDTos)
         {
@@ -124,5 +124,94 @@ namespace EtteremWebAPI.Controllers
 
             return new { message = "Sikeres törlés" };
         }
+
+        [HttpGet("vendeg/kapcsolat")]
+        public object GetVendegKapcsolat([FromQuery] int id)
+        {
+            VendegKapcsolatDTO? result = null;
+            using var conn = new MySqlConnection(ConnectionString);
+            conn.Open();
+
+            string sql = "SELECT Name, Email FROM vendeg WHERE Id = @Id";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                result = new VendegKapcsolatDTO
+                {
+                    Name = reader.GetString("Name"),
+                    Email = reader.GetString("Email")
+                };
+            }
+
+            if (result == null) return NotFound(new { message = "Vendég nem található" });
+            return result;
+        }
+
+        [HttpGet("vendeg/rendelesek")]
+        public object GetVendegRendelesek([FromQuery] int id)
+        {
+            VendegRendelesekDTO? result = null;
+            using var conn = new MySqlConnection(ConnectionString);
+            conn.Open();
+
+            string sql = @"SELECT v.Name, r.Dish, r.Description FROM vendeg v LEFT JOIN rendeles r ON v.Id = r.VendegId WHERE v.Id = @Id";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (result == null)
+                {
+                    result = new VendegRendelesekDTO
+                    {
+                        Name = reader.GetString("Name")
+                    };
+                }
+
+                if (!reader.IsDBNull(reader.GetOrdinal("Dish")))
+                {
+                    result.Orders.Add(new RendelesReszletDTO
+                    {
+                        Dish = reader.GetString("Dish"),
+                        Description = reader.GetString("Description")
+                    });
+                }
+            }
+
+            if (result == null) return NotFound(new { message = "Vendég nem található" });
+            return result;
+        }
+        [HttpGet("rendelesek/osszesen")]
+        public object GetOsszesRendelesSzam()
+        {
+            int totalCount = 0;
+            using var conn = new MySqlConnection(ConnectionString);
+            conn.Open();
+
+            string sql = "SELECT COUNT(*) FROM rendeles";
+            using var cmd = new MySqlCommand(sql, conn);
+            totalCount = Convert.ToInt32(cmd.ExecuteScalar());
+
+            return new { totalOrders = totalCount };
+        }
+
+        [HttpGet("vendeg/rendelesek-szama")]
+        public object GetVendegRendelesSzam([FromQuery] int id)
+        {
+            int orderCount = 0;
+            using var conn = new MySqlConnection(ConnectionString);
+            conn.Open();
+
+            string sql = "SELECT COUNT(*) FROM rendeles WHERE VendegId = @VendegId";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@VendegId", id);
+            orderCount = Convert.ToInt32(cmd.ExecuteScalar());
+
+            return new { vendegId = id, orderCount = orderCount };
+        }
     }
-    }
+}
