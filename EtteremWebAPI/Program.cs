@@ -32,6 +32,7 @@ namespace EtteremWebAPI
             app.MapControllers();
 
             app.Run();
+
         }
     }
 }

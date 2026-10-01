@@ -4,10 +4,10 @@ using EtteremWebAPI.Controllers.NewFolder;
 
 namespace EtteremWebAPI.Controllers
 {
-    [Route("controller")]
+    [Route("api/[controller]")] 
     [ApiController]
 
-    public class WeatherForecastController : ControllerBase
+    public class WeatherForCast : ControllerBase
     {
         private string ConnectionString = "Server=localhost;Database=etterem;uid=root;password=;";
 
@@ -18,7 +18,7 @@ namespace EtteremWebAPI.Controllers
             using (MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(ConnectionString))
             {
                 conn.Open();
-                using (MySql.Data.MySqlClient.MySqlCommand cmd = new MySql.Data.MySqlClient.MySqlCommand("SELECT * FROM etterem", conn))
+                using (MySql.Data.MySqlClient.MySqlCommand cmd = new MySql.Data.MySqlClient.MySqlCommand("SELECT * FROM rendeles", conn))
                 {
                     using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
                     {
