@@ -1,0 +1,6 @@
+@EtteremWebAPI_HostAddress = http://localhost:5210
+
+GET {{EtteremWebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
